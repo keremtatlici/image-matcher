@@ -7,6 +7,7 @@ import numpy as np
 import argparse
 import os
 
+#ARGS
 ap = argparse.ArgumentParser()
 ap.add_argument("-wf", "--wf_image", required=True, help="wide field image path")
 ap.add_argument("-mf", "--mf_image", help="medium field image path.")
@@ -15,18 +16,20 @@ ap.add_argument('-wp', '--write_path', help='write path for the result image if 
 ap.add_argument('-s', '--show', action='store_true', help='just pass this argument empty for print screen the result')
 args = vars(ap.parse_args())
 
-
-
-
+#WF IMAGE READ
 try:
     wf_image = cv2.imread(args["wf_image"])
 except:
     print(f'Cant read the wf image that has been given.Are you sure thats an image? :{args["wf_image"]}')
 
+
 mf_images= list()
+
+#if single mf image 
 if args['mf_image']:
     mf_images.append(cv2.imread(args['mf_image']))
 
+#if multi mf images
 elif args['mf_images']:
     file_names = [f for f in listdir(args["mf_images"]) if isfile(join(args["mf_images"], f))]
     [mf_images.append(cv2.imread(args['mf_images']+file_name)) for file_name in file_names]
@@ -34,12 +37,15 @@ elif args['mf_images']:
 else:
     raise AssertionError("You must either give the --mf_image parameter the image path or the --mf_images parameter the directory path")
 
+#sift algos start
 sift4mf = cv2.SIFT_create( contrastThreshold=0.016)
 sift4wf = cv2.SIFT_create( contrastThreshold=0.002)
 
+#compute wf's key points
 kp_wf, des_wf = sift4wf.detectAndCompute(wf_image, None)
 print("Number of feature has been created at wf : ", len(kp_wf))
 
+# keypoint detect -> finding homography between wf and mfs -> wrapping
 for mf_image in mf_images:
 
     kp_mf, des_mf = sift4mf.detectAndCompute(mf_image, None)
